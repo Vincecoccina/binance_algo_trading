@@ -7,27 +7,20 @@ from binance.client import Client
 from dotenv import load_dotenv
 
 load_dotenv()
-api_key = os.getenv("API_KEY")
-secret_key = os.getenv("SECRET_KEY")
+api_key = os.getenv("API_KEY_TEST")
+secret_key = os.getenv("SECRET_KEY_TEST")
 
 # Initialisation de l'API Binance
-client = Client(api_key=api_key, api_secret=secret_key, tld='com')
+client = Client(api_key=api_key, api_secret=secret_key, tld='com',testnet=True)
 
-# Fonction de récupération des données historique du BITCOIN sur 500 jours
-def get_historical_data(symbol, interval, limit=500):
-    klines = client.get_klines(symbol=symbol, interval=interval, limit=limit)
-    df = pd.DataFrame(klines, columns=['Open_time', 'Open', 'High', 'Low', 'Close', 'Volume', 'Close_time', 'Quote_asset_volume', 'Number_of_trades', 'Taker_buy_base_asset_volume', 'Taker_buy_quote_asset_volume', 'Ignore'])
-    df[['Open', 'High', 'Low', 'Close']] = df[['Open', 'High', 'Low', 'Close']].astype(float)
-    return df
+def get_balance():
+    x = client.get_account()
+    df = pd.DataFrame(x["balances"])
 
-data = get_historical_data('BTCUSDT', '1d', limit=500)
-# Nettoyage des données
-data = data.drop(columns=['Quote_asset_volume', 'Close_time', 'Number_of_trades','Taker_buy_base_asset_volume', 'Taker_buy_quote_asset_volume', 'Ignore' ])
-data['Open_time'] = pd.to_datetime(data['Open_time'], unit='ms')
-data.rename(columns={'Open_time': 'Date'}, inplace=True)
-data.set_index('Date', inplace=True)
-# Ajout de la colonne SMA
-data["SMA_10"] = ta.sma(data["Close"], length=10)
+def get_curr_value(symbol):
+    price = client.get_symbol_ticker(symbol=symbol)
+    return price["price"]
+
 
 
 
